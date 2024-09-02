@@ -1,7 +1,9 @@
 # controllers will contains only application logic it doesn't care who is calling this function
 
+import re
 from models.todo import Todo
-from flask import render_template, request
+from flask import redirect, render_template, request, redirect
+import datetime
 
 
 def render_main_handler():
@@ -16,7 +18,10 @@ def render_main_handler():
         else:
             completed_todos.append(todo)
 
-    return render_template("index.html", completed_todos=completed_todos, pending_todos=pending_todos)
+    now = datetime.datetime.now()
+    time = datetime.datetime.strftime(now, "%A, %d %b %Y %I:%M%p")
+
+    return render_template("index.html", completed_todos=completed_todos, pending_todos=pending_todos, current_time=time)
 
 
 def create_todo_handler():
@@ -30,18 +35,21 @@ def create_todo_handler():
                 deadline_time=form.get("deadline_time"),
                 status="pending")
 
-    todo.create_todo()
+    try:
+        todo.create_todo()
+    except Exception as e:
+        return redirect("https://google.com")
 
-    return render_main_handler()
+    return redirect("/")
 
 
 def delete_todo_handler():
     id = request.args.get("todo_id")
     Todo.delete_todo(id)
-    return render_main_handler()
+    return redirect("/")
 
 
 def complete_todo_handler():
     id = request.args.get("todo_id")
     Todo.complete_todo(id)
-    return render_main_handler()
+    return redirect("/")
